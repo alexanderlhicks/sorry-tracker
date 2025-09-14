@@ -4,6 +4,8 @@ This script automates the process of finding `sorry` proof obligations in a Lean
 
 It is designed to streamline the management of formal verification projects by converting unfinished proofs into actionable, well-documented tasks.
 
+:warning: Whilst this has worked locally for some projects, it has not been extensively tested, may still have rough edges and incomplete implementations of features.
+
 ## How it Works
 
 The script scans a Lean project for `sorry` statements. For each one it finds, it gathers a comprehensive context package, including:
@@ -86,7 +88,7 @@ Now, run the script:
 ```bash
 python3 issues.py \
   --repo-path ~/my-lean-project \
-  --reference-url https://arxiv.org/pdf/1234.56789.pdf \
+  --reference-url https://arxiv.org/pdf/reference-paper.pdf \
   --web-search \
   src/theorems
 ```
