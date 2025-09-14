@@ -22,9 +22,9 @@ def check_dependencies():
         print("   Please install it from https://cli.github.com/", file=sys.stderr)
         sys.exit(1)
     if not shutil.which("gcloud"):
-        print("❌ Error: The Google Cloud SDK ('gcloud') is not installed or not in your PATH.", file=sys.stderr)
-        print("   Please install it from https://cloud.google.com/sdk/docs/install", file=sys.stderr)
-        sys.exit(1)
+        print("⚠️  Warning: The Google Cloud SDK ('gcloud') is not found in your PATH.", file=sys.stderr)
+        print("   If you experience authentication issues, installing it may help:", file=sys.stderr)
+        print("   https://cloud.google.com/sdk/docs/install", file=sys.stderr)
 
 def fetch_urls_content(urls: list[str]) -> str:
     """Fetches content from a list of URLs and returns the combined text."""
@@ -198,29 +198,47 @@ def generate_ai_analysis(code_snippet: str, full_file_content: str, model_name: 
         return ""
 
 
-def create_github_issue(title: str, body: str, repo_name: str, label: str):
+def create_github_issue(title: str, body: str, repo_name: str, label: str, stable_id: str):
     """
-    Uses the GitHub CLI to create an issue, checking for duplicates first.
+    Uses the GitHub CLI to create an issue, checking for duplicates using a targeted search for a stable ID.
     """
-    # 1. Check if a similar issue already exists
-    search_query = f'"{{title}}" in:title repo:{repo_name} is:open'
+    # 1. Check if an issue with our stable ID already exists.
+    id_comment = f"<!-- sorry-tracker-id: {stable_id} -->"
+    search_query = f'"{id_comment}" in:body repo:{repo_name} is:open'
+    
     try:
-        existing_issues = run_command(["gh", "issue", "list", "--search", search_query])
-        if existing_issues:
-            print(f"⚠️  Issue already exists for '{title}'. Skipping.")
+        # We run the command and check its output. If it finds an issue, it will return text.
+        # If it finds no issues, it will return an empty string and a non-zero exit code.
+        existing_issues = run_command([
+            "gh", "issue", "list",
+            "--search", search_query,
+            "--json", "number" # We only need to know if it exists, so we fetch a minimal field.
+        ])
+        
+        # If the command returned anything, it means an issue was found.
+        if existing_issues and existing_issues.strip() != "[]":
+            # We can even parse the JSON to get the issue number for a more informative message.
+            import json
+            issue_number = json.loads(existing_issues)[0]['number']
+            print(f"⚠️  Issue #{issue_number} already exists for '{stable_id}'. Skipping.")
             return
+            
     except subprocess.CalledProcessError as e:
-        # gh issue list exits with 4 if no results are found, which is not an error for us.
-        if "no issues found" not in e.stderr.lower():
+        # This is the expected case for "no duplicates found". 
+        # `gh` exits with 1 if the search query returns no results.
+        if "no issues found" in e.stderr.lower():
+            pass # This is fine, it means we can proceed to create the issue.
+        else:
+            # For any other error, we should report it.
             print(f"❌ Error checking for existing issues: {e.stderr}", file=sys.stderr)
-            # We can choose to continue or exit. For now, let's continue.
-            pass
+            return # Do not proceed if the check failed.
 
-    # 2. If no duplicates, create the new issue
+    # 2. If no duplicates were found, create the new issue.
+    full_body = f"{body}\n\n{id_comment}"
     command = [
         "gh", "issue", "create",
         "--title", title,
-        "--body", body,
+        "--body", full_body,
         "--label", label
     ]
     try:
@@ -228,6 +246,8 @@ def create_github_issue(title: str, body: str, repo_name: str, label: str):
         print(f"✅ Successfully created issue: '{title}'")
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to create GitHub issue.\nTitle: {title}\nError: {e.stderr}", file=sys.stderr)
+
+
 
 
 def find_all_sorries(search_path: str, target_repo_path: str, web_search: bool) -> list[dict]:
@@ -316,7 +336,10 @@ def process_sorries(sorries: list[dict], repo_name: str, reference_context: str,
                     f"**Code Snippet:**\n```lean\n{sorry_info['snippet']}\n```"
                 )
                 
-                create_github_issue(title, body, repo_name, args.label)
+                # Generate the stable ID
+                stable_id = f"{sorry_info['decl_name']}@{sorry_info['file_path']}"
+                
+                create_github_issue(title, body, repo_name, args.label, stable_id)
             except Exception as exc:
                 print(f"❌ Error processing {sorry_info['file_path']}: {exc}", file=sys.stderr)
 
