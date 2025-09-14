@@ -88,7 +88,7 @@ Now, run the script:
 ```bash
 python3 issues.py \
   --repo-path ~/my-lean-project \
-  --reference-url https://arxiv.org/pdf/1234.56789.pdf \
+  --reference-url https://arxiv.org/pdf/reference-paper.pdf \
   --web-search \
   src/theorems
 ```
