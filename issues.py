@@ -4,7 +4,7 @@ import subprocess
 import re
 import argparse
 import concurrent.futures
-import google.generativeai as genai
+from google import genai
 
 import shutil
 
@@ -46,7 +46,6 @@ def fetch_urls_content(urls: list[str]) -> str:
     except Exception as e:
         print(f"❌ Error fetching URL content: {e}", file=sys.stderr)
         return ""
-
 
 
 def find_and_read_imports(file_content: str, repo_root: str, web_search: bool) -> str:
@@ -132,11 +131,12 @@ def run_command(command):
         print(f"❌ Error running command: {' '.join(command)}\n{e.stderr}", file=sys.stderr)
         sys.exit(1)
 
+
 def generate_ai_analysis(code_snippet: str, full_file_content: str, model_name: str, imports_context: str, reference_context: str) -> str:
     """Calls the Gemini API to generate a detailed analysis of a proof obligation."""
     print(f"🤖 Calling Gemini API ({model_name}) for detailed analysis...")
     try:
-        model = genai.GenerativeModel(model_name)
+        client = genai.Client()
         
         # Conditionally add the reference context to the prompt
         reference_section = ""
@@ -187,7 +187,10 @@ def generate_ai_analysis(code_snippet: str, full_file_content: str, model_name: 
             f"**Declaration with `sorry`:**\n```lean\n{code_snippet}\n```"
         )
         
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt
+        )
         return response.text.strip()
     except Exception as e:
         print(
