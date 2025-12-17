@@ -33,21 +33,20 @@ This rich context is then sent to the Gemini API, which generates a detailed ana
 
 ## Prerequisites
 
-1.  **Python 3.7+** and the `uv` package manager.
+1.  **Python 3.9+** and the `uv` package manager.
 2.  **GitHub CLI**: The `gh` command-line tool must be installed and authenticated. Run `gh auth login` to set it up.
 3.  **Google Cloud SDK**: The `gcloud` CLI is required for authenticating with the Gemini API. Run `gcloud auth application-default login` to set up Application Default Credentials.
 4.  **Project Dependencies**: Before running the script on a Lean project, ensure you have downloaded its dependencies by running `lake build` within the project's root directory.
 
 ## Installation
 
-The script requires the `google-generativeai` library. It is recommended to install it in a virtual environment.
-
 ```bash
-# Create a virtual environment
-uv venv
+# Clone the repository
+git clone https://github.com/your-username/sorry-tracker.git
+cd sorry-tracker
 
-# Install the required package
-uv pip install -r requirements.txt
+# Sync dependencies (optional, checks setup)
+uv sync
 ```
 
 ## Usage
@@ -55,7 +54,7 @@ uv pip install -r requirements.txt
 The script is run from the command line, pointing it to the target repository you wish to analyze.
 
 ```bash
-uv run issues.py --repo-path /path/to/your/lean/project [OPTIONS] [SEARCH_PATH]
+uv run sorry-tracker --repo-path /path/to/your/lean/project [OPTIONS] [SEARCH_PATH]
 ```
 
 ### Arguments
@@ -85,7 +84,7 @@ cd -
 Now, run the script:
 
 ```bash
-uv run issues.py \
+uv run sorry-tracker \
   --repo-path ~/my-lean-project \
   --reference-url https://arxiv.org/pdf/reference-paper.pdf \
   --web-search \
