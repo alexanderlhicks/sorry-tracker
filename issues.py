@@ -370,8 +370,8 @@ def main():
     )
     parser.add_argument(
         "--model",
-        default='gemini-2.5-pro',
-        help="The Gemini model to use for analysis (default: 'gemini-2.5-pro')."
+        default='gemini-3-pro-preview',
+        help="The Gemini model to use for analysis (default: 'gemini-3-pro-preview')."
     )
     parser.add_argument(
         '--reference-url',
