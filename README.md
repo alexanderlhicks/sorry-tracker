@@ -66,7 +66,7 @@ uv run sorry-tracker --repo-path /path/to/your/lean/project [OPTIONS] [SEARCH_PA
 
 -   `--dry-run`: Simulate the script's execution. It will print the `sorry`s it finds but will not call the Gemini API or create GitHub issues.
 -   `--label LABEL`: The GitHub issue label to use. (Default: `proof wanted`).
--   `--model MODEL`: The Gemini model to use for analysis. (Default: `gemini-2.5-pro`).
+-   `--model MODEL`: The Gemini model to use for analysis. (Default: `gemini-3-pro`).
 -   `--reference-url URL`: A URL to a PDF or webpage to be used as context. This flag can be specified multiple times.
 -   `--web-search`: If an imported definition cannot be found locally, perform a web search as a fallback.
 
